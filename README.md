@@ -1,10 +1,8 @@
 # Dokumentasi Sistem Manajemen Cuti Karyawan
-
 Dokumen ini berisi penjelasan mengenai arsitektur, logika bisnis, dan panduan penggunaan API untuk Sistem Manajemen Cuti Karyawan. Sistem ini dibangun menggunakan Laravel 11 dengan pendekatan Clean Architecture untuk memastikan kode yang terstruktur, aman, dan mudah dikembangkan.
 
-## Arsitektur Sistem (Clean Architecture)
-
-Sistem ini tidak menumpuk logika pemrograman di dalam Controller. Kami memisahkan tanggung jawab kode menjadi beberapa lapisan untuk menjaga kualitas dan keterbacaan:
+## Arsitektur Sistem
+Sistem ini tidak menumpuk logika pemrograman di dalam Controller. Saya memisahkan tanggung jawab kode menjadi beberapa lapisan untuk menjaga kualitas dan keterbacaan:
 
 1.  **Service Layer (`LeaveService`)**
     * Bertindak sebagai pusat logika bisnis.
@@ -22,7 +20,6 @@ Sistem ini tidak menumpuk logika pemrograman di dalam Controller. Kami memisahka
     * Memastikan hanya pengguna dengan peran "Admin" yang dapat mengakses fitur persetujuan cuti.
 
 ## Logika Bisnis Utama
-
 Sistem ini menerapkan aturan bisnis yang ketat untuk menjaga akurasi data cuti:
 
 * **Pemotongan Kuota di Awal (Deduct First):**
@@ -36,7 +33,7 @@ Sistem ini menerapkan aturan bisnis yang ketat untuk menjaga akurasi data cuti:
     * **Admin:** Memiliki akses penuh untuk melihat seluruh data cuti karyawan dan melakukan aksi persetujuan.
 
 ## Panduan Penggunaan Sistem
-
+Saya menggunakan Postman untuk API Testing, disarankan menggunakan Postman untuk hasil yang lebih akurat. 
 Berikut adalah alur kerja dan daftar endpoint API yang tersedia dalam sistem ini.
 
 ### 1. Autentikasi Pengguna
@@ -69,14 +66,13 @@ Digunakan untuk mendapatkan Token Akses.
     ```
 
 ### 2. Manajemen Cuti (Employee)
-
 Karyawan menggunakan endpoint ini untuk mengajukan permohonan cuti.
 
 **Ajukan Cuti**
 Wajib menggunakan tipe konten `multipart/form-data` karena menyertakan file lampiran.
 
 * **Endpoint:** `POST /api/leaves`
-* **Header:** `Authorization: Bearer <token_employee>`
+* **Authorization:** `Auth Type: Bearer Token, Token: <token-employee>`
 * **Body (Form-Data):**
     * `start_date`: 2026-03-01 (Format YYYY-MM-DD)
     * `end_date`: 2026-03-03
@@ -84,20 +80,19 @@ Wajib menggunakan tipe konten `multipart/form-data` karena menyertakan file lamp
     * `attachment`: [File Gambar/PDF]
 
 ### 3. Manajemen Persetujuan (Admin)
-
 Admin menggunakan endpoint ini untuk menyetujui atau menolak permohonan yang masuk.
 
 **A. Lihat Semua Cuti**
 Admin akan melihat seluruh data cuti dari semua karyawan.
 
 * **Endpoint:** `GET /api/leaves`
-* **Header:** `Authorization: Bearer <token_admin>`
+* **Authorization:** `Auth Type: Bearer Token, Token: <token-admin>`
 
 **B. Proses Cuti (Approve/Reject)**
 Mengubah status pengajuan cuti. Jika status diubah menjadi `rejected`, kuota karyawan akan dikembalikan.
 
 * **Endpoint:** `PUT /api/leaves/{id_cuti}/approval`
-* **Header:** `Authorization: Bearer <token_admin>`
+* **Authorization:** `Auth Type: Bearer Token, Token: <token-admin>`
 * **Body (JSON) - Untuk Menyetujui:**
     ```json
     {
@@ -113,7 +108,6 @@ Mengubah status pengajuan cuti. Jika status diubah menjadi `rejected`, kuota kar
     ```
 
 ### 4. Contoh Skenario Pengujian
-
 Untuk memverifikasi fungsionalitas sistem, Anda dapat menjalankan skenario berikut:
 
 1.  **Register** dua akun: satu sebagai `admin`, satu sebagai `employee`.
