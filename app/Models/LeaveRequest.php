@@ -19,7 +19,6 @@ class LeaveRequest extends Model
         'rejection_reason'
     ];
 
-    // Relasi ke User (Pemilik cuti)
     public function user()
     {
         return $this->belongsTo(User::class);
