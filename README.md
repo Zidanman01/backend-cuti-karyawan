@@ -2,7 +2,7 @@
 Dokumen ini berisi penjelasan mengenai arsitektur, logika bisnis, dan panduan penggunaan API untuk Sistem Manajemen Cuti Karyawan. Sistem ini dibangun menggunakan Laravel 11 dengan pendekatan Clean Architecture untuk memastikan kode yang terstruktur, aman, dan mudah dikembangkan.
 
 ## Arsitektur Sistem
-Sistem ini tidak menumpuk logika pemrograman di dalam Controller. Saya memisahkan tanggung jawab kode menjadi beberapa lapisan untuk menjaga kualitas dan keterbacaan:
+Saya tidak menumpuk logika pemrograman di dalam Controller sistem ini. Saya memisahkan tanggung jawab kode menjadi beberapa lapisan untuk menjaga kualitas dan keterbacaan:
 
 1.  **Service Layer (`LeaveService`)**
     * Bertindak sebagai pusat logika bisnis.
@@ -20,7 +20,7 @@ Sistem ini tidak menumpuk logika pemrograman di dalam Controller. Saya memisahka
     * Memastikan hanya pengguna dengan peran "Admin" yang dapat mengakses fitur persetujuan cuti.
 
 ## Logika Bisnis Utama
-Sistem ini menerapkan aturan bisnis yang ketat untuk menjaga akurasi data cuti:
+Saya menerapkan aturan yang ketat untuk menjaga akurasi data cuti. Saya menggunakan 3 metode untuk memastikan data cuti tetap akurat:
 
 * **Pemotongan Kuota di Awal (Deduct First):**
     Saat karyawan mengajukan cuti, kuota mereka langsung dikurangi oleh sistem. Hal ini dilakukan untuk mencegah karyawan mengajukan cuti melebihi sisa kuota yang dimiliki dalam waktu yang bersamaan.
