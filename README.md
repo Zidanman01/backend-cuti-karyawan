@@ -117,3 +117,7 @@ Untuk memverifikasi fungsionalitas sistem, Anda dapat menjalankan skenario berik
 5.  **Login** sebagai `admin` dan catat Token-nya.
 6.  **Tolak (Reject)** pengajuan cuti tersebut menggunakan Token Admin.
 7.  Periksa kembali database atau endpoint user profil, pastikan kuota karyawan telah kembali seperti semula (Refund berhasil).
+
+## API Documentation
+Berikut adalah link untuk dokumentasi API Testing yang saya lakukan di Postman:
+https://documenter.getpostman.com/view/51287657/2sBXc8p3bL
