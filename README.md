@@ -2,7 +2,7 @@
 Dokumen ini berisi penjelasan mengenai arsitektur, logika bisnis, dan panduan penggunaan API untuk Sistem Manajemen Cuti Karyawan. Sistem ini dibangun menggunakan Laravel 11 dengan pendekatan Clean Architecture untuk memastikan kode yang terstruktur, aman, dan mudah dikembangkan.
 
 ## Arsitektur Sistem
-Saya tidak menumpuk logika pemrograman di dalam Controller sistem ini. Saya memisahkan tanggung jawab kode menjadi beberapa lapisan untuk menjaga kualitas dan keterbacaan:
+Saya tidak menumpuk logika pemrograman di dalam Controller sistem ini. Saya memisahkan tanggung jawab kode menjadi 3 layer untuk menjaga kualitas dan keterbacaan:
 
 1.  **Service Layer (`LeaveService`)**
     * Bertindak sebagai pusat logika bisnis.
