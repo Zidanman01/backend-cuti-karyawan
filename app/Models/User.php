@@ -45,7 +45,6 @@ class User extends Authenticatable
         ];
     }
 
-    // Relasi: Satu User punya banyak Request Cuti
     public function leaveRequests()
     {
         return $this->hasMany(LeaveRequest::class);
