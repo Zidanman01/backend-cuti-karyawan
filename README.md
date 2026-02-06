@@ -1,64 +1,125 @@
-# API Manajemen Cuti Karyawan 🚀
+# Dokumentasi Sistem Manajemen Cuti Karyawan
 
-RESTful API ini dirancang untuk menangani proses pengajuan cuti karyawan, lengkap dengan fitur autentikasi yang aman, manajemen hak akses (role), dan logika perhitungan kuota cuti otomatis. Proyek ini dibangun menggunakan **Laravel 11** dan menerapkan prinsip **Clean Architecture**.
+Dokumen ini berisi penjelasan mengenai arsitektur, logika bisnis, dan panduan penggunaan API untuk Sistem Manajemen Cuti Karyawan. Sistem ini dibangun menggunakan Laravel 11 dengan pendekatan Clean Architecture untuk memastikan kode yang terstruktur, aman, dan mudah dikembangkan.
 
----
+## Arsitektur Sistem (Clean Architecture)
 
-## 🛠 Teknologi yang Digunakan
+Sistem ini tidak menumpuk logika pemrograman di dalam Controller. Kami memisahkan tanggung jawab kode menjadi beberapa lapisan untuk menjaga kualitas dan keterbacaan:
 
-- **Framework:** Laravel 11
-- **Database:** PostgreSQL
-- **Authentication:** Laravel Sanctum (Token-based)
-- **Architecture:** MVC + Service Repository Pattern (Clean Architecture)
+1.  **Service Layer (`LeaveService`)**
+    * Bertindak sebagai pusat logika bisnis.
+    * Menangani kalkulasi durasi cuti, perhitungan sisa kuota, logika upload file, dan eksekusi transaksi database.
+    * Menjamin integritas data: Jika terjadi kesalahan saat penyimpanan, semua perubahan data akan dibatalkan (rollback).
 
----
+2.  **Controller Layer (`LeaveController`)**
+    * Hanya bertugas menerima permintaan HTTP (Request).
+    * Memvalidasi input dari pengguna.
+    * Memanggil Service Layer untuk memproses data.
+    * Mengembalikan respon dalam format JSON yang standar.
 
-## ✨ Fitur Utama
+3.  **Middleware (`IsAdmin`)**
+    * Bertugas sebagai penjaga keamanan untuk rute khusus.
+    * Memastikan hanya pengguna dengan peran "Admin" yang dapat mengakses fitur persetujuan cuti.
 
-1.  **Autentikasi Aman:** Sistem login berbasis token menggunakan Laravel Sanctum.
-2.  **Manajemen Role (RBAC):**
-    - **Employee:** Dapat mengajukan cuti dan memantau status pengajuannya sendiri.
-    - **Admin:** Memiliki akses penuh untuk melihat semua data dan melakukan persetujuan (Approve/Reject).
-3.  **Logika Bisnis Lanjutan:**
-    - **Manajemen Kuota:** Kuota dipotong otomatis saat pengajuan dibuat.
-    - **Auto-Refund:** Jika pengajuan ditolak (Reject) oleh Admin, kuota karyawan akan otomatis dikembalikan (refund).
-    - **Atomic Transactions:** Menggunakan Database Transactions untuk menjamin integritas data saat update kuota.
-4.  **Upload File:** Validasi dan penyimpanan file lampiran (attachment) bukti cuti.
+## Logika Bisnis Utama
 
----
+Sistem ini menerapkan aturan bisnis yang ketat untuk menjaga akurasi data cuti:
 
-## 🏗 Penjelasan Arsitektur
+* **Pemotongan Kuota di Awal (Deduct First):**
+    Saat karyawan mengajukan cuti, kuota mereka langsung dikurangi oleh sistem. Hal ini dilakukan untuk mencegah karyawan mengajukan cuti melebihi sisa kuota yang dimiliki dalam waktu yang bersamaan.
 
-Proyek ini menghindari praktik "Fat Controllers" dengan memisahkan logika ke dalam **Service Layer**:
+* **Pengembalian Kuota Otomatis (Auto-Refund):**
+    Apabila pengajuan cuti ditolak (Rejected) oleh Admin, sistem secara otomatis akan mengembalikan kuota cuti ke saldo karyawan sesuai dengan jumlah hari yang diajukan.
 
-- **Controllers (`LeaveController`)**: Hanya bertugas menerima request HTTP, validasi input, dan mengembalikan format respons JSON.
-- **Services (`LeaveService`)**: Menangani logika bisnis yang kompleks (perhitungan tanggal, upload file, pengurangan kuota, dan transaksi database).
-- **Middleware (`IsAdmin`)**: Menjaga keamanan endpoint sensitif agar hanya bisa diakses oleh Admin.
+* **Validasi Role:**
+    * **Employee:** Hanya dapat mengajukan cuti dan melihat riwayat cuti miliknya sendiri.
+    * **Admin:** Memiliki akses penuh untuk melihat seluruh data cuti karyawan dan melakukan aksi persetujuan.
 
----
+## Panduan Penggunaan Sistem
 
-## ⚙️ Instalasi & Pengaturan
+Berikut adalah alur kerja dan daftar endpoint API yang tersedia dalam sistem ini.
 
-Ikuti langkah-langkah berikut untuk menjalankan proyek di komputer lokal Anda.
+### 1. Autentikasi Pengguna
+Setiap permintaan ke API (kecuali Login dan Register) wajib menyertakan **Bearer Token** pada Header Authorization.
 
-### 1. Prasyarat
-Pastikan software berikut sudah terinstall:
-- PHP >= 8.2
-- Composer
-- PostgreSQL
+**A. Register User Baru**
+Digunakan untuk mendaftarkan akun Admin atau Employee baru.
 
-### 2. Langkah Instalasi
+* **Endpoint:** `POST /api/auth/register`
+* **Body (JSON):**
+    ```json
+    {
+        "name": "Nama User",
+        "email": "user@email.com",
+        "password": "password123",
+        "role": "admin"  // atau "employee"
+    }
+    ```
 
-```bash
-# Clone repository
-git clone <url-repository-anda>
-cd backend-cuti
+**B. Login**
+Digunakan untuk mendapatkan Token Akses.
 
-# Install dependencies PHP
-composer install
+* **Endpoint:** `POST /api/auth/login`
+* **Body (JSON):**
+    ```json
+    {
+        "email": "user@email.com",
+        "password": "password123"
+    }
+    ```
 
-# Buat file Environment
-cp .env.example .env
+### 2. Manajemen Cuti (Employee)
 
-# Generate Application Key
-php artisan key:generate
+Karyawan menggunakan endpoint ini untuk mengajukan permohonan cuti.
+
+**Ajukan Cuti**
+Wajib menggunakan tipe konten `multipart/form-data` karena menyertakan file lampiran.
+
+* **Endpoint:** `POST /api/leaves`
+* **Header:** `Authorization: Bearer <token_employee>`
+* **Body (Form-Data):**
+    * `start_date`: 2026-03-01 (Format YYYY-MM-DD)
+    * `end_date`: 2026-03-03
+    * `reason`: Keperluan keluarga
+    * `attachment`: [File Gambar/PDF]
+
+### 3. Manajemen Persetujuan (Admin)
+
+Admin menggunakan endpoint ini untuk menyetujui atau menolak permohonan yang masuk.
+
+**A. Lihat Semua Cuti**
+Admin akan melihat seluruh data cuti dari semua karyawan.
+
+* **Endpoint:** `GET /api/leaves`
+* **Header:** `Authorization: Bearer <token_admin>`
+
+**B. Proses Cuti (Approve/Reject)**
+Mengubah status pengajuan cuti. Jika status diubah menjadi `rejected`, kuota karyawan akan dikembalikan.
+
+* **Endpoint:** `PUT /api/leaves/{id_cuti}/approval`
+* **Header:** `Authorization: Bearer <token_admin>`
+* **Body (JSON) - Untuk Menyetujui:**
+    ```json
+    {
+        "status": "approved"
+    }
+    ```
+* **Body (JSON) - Untuk Menolak:**
+    ```json
+    {
+        "status": "rejected",
+        "rejection_reason": "Jadwal terlalu padat"
+    }
+    ```
+
+### 4. Contoh Skenario Pengujian
+
+Untuk memverifikasi fungsionalitas sistem, Anda dapat menjalankan skenario berikut:
+
+1.  **Register** dua akun: satu sebagai `admin`, satu sebagai `employee`.
+2.  **Login** sebagai `employee` dan catat Token-nya.
+3.  **Ajukan Cuti** menggunakan Token Employee. Pastikan melampirkan file bukti.
+4.  Periksa database, pastikan kuota karyawan berkurang.
+5.  **Login** sebagai `admin` dan catat Token-nya.
+6.  **Tolak (Reject)** pengajuan cuti tersebut menggunakan Token Admin.
+7.  Periksa kembali database atau endpoint user profil, pastikan kuota karyawan telah kembali seperti semula (Refund berhasil).
